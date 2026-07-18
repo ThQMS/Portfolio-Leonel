@@ -117,7 +117,11 @@
     var ctx = c.getContext("2d");
     if (!ctx) { boot.classList.add("boot-skip"); c.remove(); return; }
     var W = (c.width = window.innerWidth), H = (c.height = window.innerHeight);
-    var TAU = Math.PI * 2, baseY = H * 0.97, span = H * 0.94;
+    // The funnel is sized from its OWN height, not the viewport width — on a tall portrait phone
+    // a width-derived radius produced a thin, stretched sliver instead of a tornado.
+    var TAU = Math.PI * 2, baseY = H * 0.97;
+    var span = H * (desktop ? 0.94 : 0.72);              // shorter funnel on portrait screens
+    var RMAX = Math.min(span * 0.26, W * 0.42);          // top radius: keeps a tornado-like ratio
 
     // Phones get a lighter funnel (fewer wisps/strands/rings) so the entrance stays smooth there.
     var N_BITS = desktop ? 300 : 110;
@@ -130,7 +134,7 @@
     for (var i = 0; i < N_BITS; i++) {
       bits.push({ h: Math.random(), ang: Math.random() * TAU, spd: 0.09 + Math.random() * 0.12, rf: 0.5 + Math.random() * 0.8, sz: 1 + Math.random() * 2.2 });
     }
-    function funnelR(h, grow) { return (6 + Math.pow(h, 1.6) * W * 0.13) * grow; } // widens toward the top
+    function funnelR(h, grow) { return (6 + Math.pow(h, 1.6) * RMAX) * grow; } // widens toward the top
 
     var start = null, DUR = 3100;
     function draw(t) {
