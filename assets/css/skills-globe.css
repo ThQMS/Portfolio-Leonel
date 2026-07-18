@@ -36,6 +36,47 @@
 .skill-node i.is-dark {
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.85), 0 0 11px rgba(255, 255, 255, 0.5);
 }
+
+/* ---- Brand-colour corrections ----
+ * Devicon here is an icon FONT, so every glyph is single-colour: two-tone marks (Python's blue+
+ * yellow, Docker, Linux…) collapse to one hue, and a few resolve to near-black, which disappears
+ * on this dark background. These overrides restore the recognisable brand hue and keep contrast.
+ * Applied to all three globe renderers (3D nodes, static grid, light globe). */
+.skill-node i.colored,
+.skills-static .ss-item i.colored,
+.light-globe .lg-node i.colored {
+  /* nothing here — per-icon rules below; this selector only documents the shared scope */
+}
+.skill-node i.devicon-python-plain.colored,
+.skills-static .ss-item i.devicon-python-plain.colored,
+.light-globe .lg-node i.devicon-python-plain.colored { color: #4b8bbe; }        /* was all-yellow */
+.skill-node i.devicon-linux-plain.colored,
+.skills-static .ss-item i.devicon-linux-plain.colored,
+.light-globe .lg-node i.devicon-linux-plain.colored { color: #e8c33a; }         /* was #000 */
+.skill-node i.devicon-bash-plain.colored,
+.skills-static .ss-item i.devicon-bash-plain.colored,
+.light-globe .lg-node i.devicon-bash-plain.colored { color: #89e051; }          /* was near-black */
+.skill-node i.devicon-cypressio-plain.colored,
+.skills-static .ss-item i.devicon-cypressio-plain.colored,
+.light-globe .lg-node i.devicon-cypressio-plain.colored { color: #69d3a7; }     /* was #1b1e2e */
+.skill-node i.devicon-cplusplus-plain.colored,
+.skills-static .ss-item i.devicon-cplusplus-plain.colored,
+.light-globe .lg-node i.devicon-cplusplus-plain.colored { color: #6098cc; }     /* was very dark blue */
+.skill-node i.devicon-c-plain.colored,
+.skills-static .ss-item i.devicon-c-plain.colored,
+.light-globe .lg-node i.devicon-c-plain.colored { color: #7aa6d6; }             /* was washed grey */
+.skill-node i.devicon-mysql-original.colored,
+.skills-static .ss-item i.devicon-mysql-original.colored,
+.light-globe .lg-node i.devicon-mysql-original.colored { color: #4aa3c7; }      /* was dark teal */
+.skill-node i.devicon-postgresql-plain.colored,
+.skills-static .ss-item i.devicon-postgresql-plain.colored,
+.light-globe .lg-node i.devicon-postgresql-plain.colored { color: #5a9fd4; }    /* lift off the dark bg */
+.skill-node i.devicon-insomnia-plain.colored,
+.skills-static .ss-item i.devicon-insomnia-plain.colored,
+.light-globe .lg-node i.devicon-insomnia-plain.colored { color: #8b5cf6; }      /* was deep indigo */
+.skill-node i.devicon-trello-plain.colored,
+.skills-static .ss-item i.devicon-trello-plain.colored,
+.light-globe .lg-node i.devicon-trello-plain.colored { color: #4c9aff; }        /* lighter Trello blue */
 .skill-node span {
   font-family: "Geist Mono", "Geist Mono Fallback", monospace;
   font-size: 10px;

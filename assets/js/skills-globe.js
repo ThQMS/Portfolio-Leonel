@@ -59,13 +59,9 @@ const SKILLS = [
 
 // Icons whose Devicon brand colour is very dark (low luminance) and would vanish on the dark globe —
 // these get a white glow via the "is-dark" class (see skills-globe.css).
-const DARK_ICONS = new Set([
-  "devicon-linux-plain",
-  "devicon-bash-plain",
-  "devicon-jenkins-plain",
-  "devicon-cypressio-plain",
-  "devicon-oracle-original",
-]);
+// (Empty now: the icons that used to resolve near-black — Linux, Bash, Cypress — are re-coloured
+// in skills-globe.css, so none of the current set needs the glow. Kept for future dark-brand icons.)
+const DARK_ICONS = new Set([]);
 
 function shuffle(list) {
   const a = list.slice();

@@ -119,9 +119,15 @@
     var W = (c.width = window.innerWidth), H = (c.height = window.innerHeight);
     var TAU = Math.PI * 2, baseY = H * 0.97, span = H * 0.94;
 
+    // Phones get a lighter funnel (fewer wisps/strands/rings) so the entrance stays smooth there.
+    var N_BITS = desktop ? 300 : 110;
+    var N_STRANDS = desktop ? 26 : 12;
+    var N_RINGS = desktop ? 24 : 12;
+    var N_LINES = desktop ? 26 : 10;
+
     // swirling debris/leaves caught in the funnel
     var bits = [];
-    for (var i = 0; i < 300; i++) {
+    for (var i = 0; i < N_BITS; i++) {
       bits.push({ h: Math.random(), ang: Math.random() * TAU, spd: 0.09 + Math.random() * 0.12, rf: 0.5 + Math.random() * 0.8, sz: 1 + Math.random() * 2.2 });
     }
     function funnelR(h, grow) { return (6 + Math.pow(h, 1.6) * W * 0.13) * grow; } // widens toward the top
@@ -146,7 +152,7 @@
 
       // gusty horizontal wind speed-lines swept behind the funnel — turbulent texture (they smear
       // into streaks thanks to the long trail above)
-      for (var wl = 0; wl < 26; wl++) {
+      for (var wl = 0; wl < N_LINES; wl++) {
         var wy = Math.random() * H;
         var wlen = 28 + Math.random() * 130;
         var wx = cx - 30 - Math.random() * (W * 0.42);
@@ -155,8 +161,8 @@
         ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + wlen, wy); ctx.stroke();
       }
       // horizontal wind rings wrapping the funnel — the main "texture"
-      for (var m = 0; m < 24; m++) {
-        var hb = m / 23, ry = baseY - hb * span, rr0 = funnelR(hb, grow);
+      for (var m = 0; m < N_RINGS; m++) {
+        var hb = m / (N_RINGS - 1), ry = baseY - hb * span, rr0 = funnelR(hb, grow);
         ctx.beginPath();
         ctx.ellipse(cx + Math.sin(spin + hb * 4) * rr0 * 0.15, ry, rr0, rr0 * 0.17, 0, 0, TAU);
         ctx.strokeStyle = "rgba(103,232,249," + (0.07 * alpha).toFixed(3) + ")";
@@ -164,8 +170,8 @@
         ctx.stroke();
       }
       // outer helical strands of the funnel (denser)
-      for (var k = 0; k < 26; k++) {
-        var base = (k / 26) * TAU;
+      for (var k = 0; k < N_STRANDS; k++) {
+        var base = (k / N_STRANDS) * TAU;
         ctx.beginPath();
         for (var s = 0; s <= 1.0001; s += 0.045) {
           var y = baseY - s * span, r = funnelR(s, grow);
