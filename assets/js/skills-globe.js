@@ -347,9 +347,23 @@ function renderLightGlobe(mount) {
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
 
+  // Only animate while the globe is actually on screen: it used to spin continuously from page
+  // load, competing for the phone's main thread with the entrance animation and the rest of the page.
+  var onScreen = true, pageVisible = !document.hidden;
+  if ("IntersectionObserver" in window) {
+    onScreen = false;
+    new IntersectionObserver(function (entries) {
+      onScreen = entries.some(function (e) { return e.isIntersecting; });
+    }, { rootMargin: "120px" }).observe(mount);
+  }
+  document.addEventListener("visibilitychange", function () {
+    pageVisible = !document.hidden;
+  });
+
   var last = 0;
   function frame(t) {
     requestAnimationFrame(frame);
+    if (!onScreen || !pageVisible) return; // idle while off-screen or in a background tab
     if (t - last < 33) return; // ~30fps is plenty and light
     last = t;
     if (!dragging) {

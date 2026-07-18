@@ -116,7 +116,15 @@
     document.body.appendChild(c);
     var ctx = c.getContext("2d");
     if (!ctx) { boot.classList.add("boot-skip"); c.remove(); return; }
-    var W = (c.width = window.innerWidth), H = (c.height = window.innerHeight);
+    // Render at reduced resolution on phones and let CSS upscale the canvas: the per-frame
+    // full-screen trail fill is pixel-bound, so ~0.6x scale cuts that cost by roughly two thirds.
+    var W = window.innerWidth, H = window.innerHeight;
+    var RES = desktop ? 1 : 0.6;
+    c.width = Math.round(W * RES);
+    c.height = Math.round(H * RES);
+    c.style.width = "100%";
+    c.style.height = "100%";
+    if (RES !== 1) ctx.scale(RES, RES); // keep drawing in CSS-pixel coordinates
     // The funnel is sized from its OWN height, not the viewport width — on a tall portrait phone
     // a width-derived radius produced a thin, stretched sliver instead of a tornado.
     var TAU = Math.PI * 2, baseY = H * 0.97;
@@ -147,6 +155,7 @@
 
     var start = null, DUR = 3100;
     var lastFrame = 0, MIN_DT = desktop ? 0 : 32; // cap phones at ~30fps: smoother than a dropped 60
+    var lastEdge = -100;                          // last clip position applied to the loading overlay
     function draw(t) {
       if (start === null) start = t;
       if (t - lastFrame < MIN_DT) { requestAnimationFrame(draw); return; }
@@ -252,13 +261,14 @@
       }
       ctx.globalAlpha = 1;
 
-      // Reveal the page IN THE TORNADO'S WAKE: mask the loading overlay away up to the funnel's
-      // position, with a feathered edge, so the site materialises behind the whirlwind as it passes.
+      // Reveal the page IN THE TORNADO'S WAKE. clip-path (a plain inset rect) is far cheaper than a
+      // mask-image gradient, which had to re-rasterise the full-screen overlay on every frame — that
+      // was the dominant cost on phones. The funnel sits right on the seam, so it reads as soft.
       var edge = (cx / W) * 100;
-      var feather = 9;
-      var mask = "linear-gradient(90deg, transparent " + (edge - feather).toFixed(2) + "%, black " + edge.toFixed(2) + "%)";
-      boot.style.webkitMaskImage = mask;
-      boot.style.maskImage = mask;
+      if (edge - lastEdge > 0.6) {                    // skip sub-pixel updates
+        lastEdge = edge;
+        boot.style.clipPath = "inset(0 0 0 " + edge.toFixed(1) + "%)";
+      }
       if (p > 0.9) boot.style.opacity = String(Math.max(0, 1 - (p - 0.9) / 0.1)); // clean finish
 
       if (p < 1) requestAnimationFrame(draw);
