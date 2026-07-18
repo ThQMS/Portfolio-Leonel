@@ -4,6 +4,8 @@ Portfólio pessoal de **Douglas Leonel** — QA / Software Tester Sênior, espec
 
 Interface com estética de IDE/terminal em **azul-noite, ciano e azul** (Blue Team), com tema **Wind Wall** inspirado no Yasuo (League of Legends): a muralha de vento que barra ameaças é a metáfora da defesa — encontrar o defeito antes que ele chegue ao usuário. Inclui globo 3D de ferramentas de QA, timeline de experiência em estilo `git log`, alternância de idioma PT/EN e efeitos ambientes (Wind Wall bloqueando ameaças, barra de testes e blueprint de arquitetura).
 
+🌐 **Site:** https://thqms.github.io/Portfolio-Leonel/
+
 🔗 **GitHub:** [@Leonelzin](https://github.com/Leonelzin) · **LinkedIn:** [Douglas Leonel](https://www.linkedin.com/in/douglas-leonel-482029209/)
 
 ## Tecnologias
