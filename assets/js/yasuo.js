@@ -119,7 +119,7 @@
     // Render at reduced resolution on phones and let CSS upscale the canvas: the per-frame
     // full-screen trail fill is pixel-bound, so ~0.6x scale cuts that cost by roughly two thirds.
     var W = window.innerWidth, H = window.innerHeight;
-    var RES = desktop ? 1 : 0.6;
+    var RES = desktop ? 1 : 0.85;
     c.width = Math.round(W * RES);
     c.height = Math.round(H * RES);
     c.style.width = "100%";
