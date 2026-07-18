@@ -120,8 +120,8 @@
     // The funnel is sized from its OWN height, not the viewport width — on a tall portrait phone
     // a width-derived radius produced a thin, stretched sliver instead of a tornado.
     var TAU = Math.PI * 2, baseY = H * 0.97;
-    var span = H * (desktop ? 0.94 : 0.72);              // shorter funnel on portrait screens
-    var RMAX = Math.min(span * 0.26, W * 0.42);          // top radius: keeps a tornado-like ratio
+    var span = H * 0.94;                                 // full-height funnel on every screen
+    var RMAX = Math.min(span * 0.26, W * 0.50);          // top radius: keeps a tornado-like ratio
 
     // Phones get a lighter funnel (fewer wisps/strands/rings) so the entrance stays smooth there.
     var N_BITS = desktop ? 300 : 110;
