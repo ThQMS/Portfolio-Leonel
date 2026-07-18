@@ -134,11 +134,23 @@
     for (var i = 0; i < N_BITS; i++) {
       bits.push({ h: Math.random(), ang: Math.random() * TAU, spd: 0.09 + Math.random() * 0.12, rf: 0.5 + Math.random() * 0.8, sz: 1 + Math.random() * 2.2 });
     }
-    function funnelR(h, grow) { return (6 + Math.pow(h, 1.6) * RMAX) * grow; } // widens toward the top
+    // Radius lookup table: funnelR is called thousands of times per frame, and Math.pow is the
+    // single most expensive call in the loop — precompute the profile once and just scale it.
+    var RTAB = new Float32Array(64);
+    for (var ri = 0; ri < 64; ri++) RTAB[ri] = 6 + Math.pow(ri / 63, 1.6) * RMAX;
+    function funnelR(h, grow) { return RTAB[(h * 63) | 0] * grow; } // widens toward the top
+
+    // Reusable Path2D buckets for the wisps: batching them by (colour, width, alpha) turns ~300
+    // individual stroke() calls per frame into a handful — the main cost on phones.
+    var A_LEVELS = 4, W_LEVELS = 2;
+    var buckets = new Array(2 * W_LEVELS * A_LEVELS);
 
     var start = null, DUR = 3100;
+    var lastFrame = 0, MIN_DT = desktop ? 0 : 32; // cap phones at ~30fps: smoother than a dropped 60
     function draw(t) {
       if (start === null) start = t;
+      if (t - lastFrame < MIN_DT) { requestAnimationFrame(draw); return; }
+      lastFrame = t;
       var p = Math.min(1, (t - start) / DUR);
       var sweep = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; // easeInOut across the screen
       var cx = -W * 0.12 + sweep * (W * 1.24);
@@ -156,51 +168,59 @@
 
       // gusty horizontal wind speed-lines swept behind the funnel — turbulent texture (they smear
       // into streaks thanks to the long trail above)
+      ctx.beginPath();                                     // all speed-lines share one path
       for (var wl = 0; wl < N_LINES; wl++) {
         var wy = Math.random() * H;
         var wlen = 28 + Math.random() * 130;
         var wx = cx - 30 - Math.random() * (W * 0.42);
-        ctx.strokeStyle = "rgba(34,211,238," + (0.05 * alpha).toFixed(3) + ")";
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + wlen, wy); ctx.stroke();
+        ctx.moveTo(wx, wy); ctx.lineTo(wx + wlen, wy);
       }
+      ctx.strokeStyle = "rgba(34,211,238," + (0.05 * alpha).toFixed(3) + ")";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       // horizontal wind rings wrapping the funnel — the main "texture"
+      ctx.beginPath();                                     // all rings share one path
       for (var m = 0; m < N_RINGS; m++) {
         var hb = m / (N_RINGS - 1), ry = baseY - hb * span, rr0 = funnelR(hb, grow);
-        ctx.beginPath();
-        ctx.ellipse(cx + Math.sin(spin + hb * 4) * rr0 * 0.15, ry, rr0, rr0 * 0.17, 0, 0, TAU);
-        ctx.strokeStyle = "rgba(103,232,249," + (0.07 * alpha).toFixed(3) + ")";
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        var rcx = cx + Math.sin(spin + hb * 4) * rr0 * 0.15;
+        ctx.moveTo(rcx + rr0, ry);                         // start point, so rings stay separate
+        ctx.ellipse(rcx, ry, rr0, rr0 * 0.17, 0, 0, TAU);
       }
+      ctx.strokeStyle = "rgba(103,232,249," + (0.07 * alpha).toFixed(3) + ")";
+      ctx.stroke();
+
       // outer helical strands of the funnel (denser)
+      var STEP = desktop ? 0.045 : 0.075;                  // fewer segments per strand on phones
+      ctx.beginPath();                                     // all outer strands share one path
       for (var k = 0; k < N_STRANDS; k++) {
         var base = (k / N_STRANDS) * TAU;
-        ctx.beginPath();
-        for (var s = 0; s <= 1.0001; s += 0.045) {
+        for (var s = 0; s <= 1.0001; s += STEP) {
           var y = baseY - s * span, r = funnelR(s, grow);
           var x = cx + Math.sin(base + spin + s * 8) * r;
           if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = "rgba(34,211,238," + (0.10 * alpha).toFixed(3) + ")";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
       }
+      ctx.strokeStyle = "rgba(34,211,238," + (0.10 * alpha).toFixed(3) + ")";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
       // brighter inner core strands
+      ctx.beginPath();                                     // all core strands share one path
       for (var k2 = 0; k2 < 4; k2++) {
         var base2 = (k2 / 4) * TAU + spin * 1.3;
-        ctx.beginPath();
-        for (var s2 = 0; s2 <= 1.0001; s2 += 0.055) {
+        for (var s2 = 0; s2 <= 1.0001; s2 += STEP + 0.01) {
           var y2 = baseY - s2 * span, r2 = funnelR(s2, grow) * 0.42;
           var x2 = cx + Math.sin(base2 + s2 * 8) * r2;
           if (s2 === 0) ctx.moveTo(x2, y2); else ctx.lineTo(x2, y2);
         }
-        ctx.strokeStyle = "rgba(165,243,252," + (0.15 * alpha).toFixed(3) + ")";
-        ctx.lineWidth = 1;
-        ctx.stroke();
       }
+      ctx.strokeStyle = "rgba(165,243,252," + (0.15 * alpha).toFixed(3) + ")";
+      ctx.lineWidth = 1;
+      ctx.stroke();
       // Swirling wind wisps: each is a short arc that follows the funnel's rotation, so the motion
       // reads as air being dragged around the vortex rather than as floating dots.
+      for (var bi = 0; bi < buckets.length; bi++) buckets[bi] = null;
       for (var b = 0; b < bits.length; b++) {
         var d = bits[b];
         d.ang += d.spd; d.h += 0.006; if (d.h > 1) d.h -= 1;
@@ -208,17 +228,27 @@
         var a0 = d.ang + spin;
         var depth = (Math.sin(a0) + 1) / 2;                 // 0 back .. 1 front
         var arcLen = 0.5 + d.spd * 4;                       // faster motes smear into longer arcs
-        ctx.globalAlpha = alpha * (0.12 + 0.6 * depth);
-        ctx.strokeStyle = depth > 0.6 ? "#cffafe" : "#22d3ee";
-        ctx.lineWidth = d.sz * 0.8;
-        ctx.beginPath();
-        for (var q = 0; q <= 1.0001; q += 0.25) {
+        // quantize style so many wisps share one path (imperceptible, but far cheaper)
+        var aLv = (depth * (A_LEVELS - 1) + 0.5) | 0;
+        var wLv = d.sz > 2 ? 1 : 0;
+        var cLv = depth > 0.6 ? 1 : 0;
+        var idx = (cLv * W_LEVELS + wLv) * A_LEVELS + aLv;
+        var path = buckets[idx] || (buckets[idx] = new Path2D());
+        for (var q = 0; q <= 1.0001; q += 0.34) {           // 4 points is enough for a short arc
           var aq = a0 - arcLen * q;                         // trail behind the leading point
           var xq = cx + Math.cos(aq) * rd;
           var yq = yy + Math.sin(aq) * rd * 0.16;           // squashed ellipse = perspective
-          if (q === 0) ctx.moveTo(xq, yq); else ctx.lineTo(xq, yq);
+          if (q === 0) path.moveTo(xq, yq); else path.lineTo(xq, yq);
         }
-        ctx.stroke();
+      }
+      for (var bj = 0; bj < buckets.length; bj++) {
+        var bp = buckets[bj];
+        if (!bp) continue;
+        var aL = bj % A_LEVELS, wL = ((bj / A_LEVELS) | 0) % W_LEVELS, cL = (bj / (A_LEVELS * W_LEVELS)) | 0;
+        ctx.globalAlpha = alpha * (0.12 + 0.6 * (aL / (A_LEVELS - 1)));
+        ctx.strokeStyle = cL ? "#cffafe" : "#22d3ee";
+        ctx.lineWidth = wL ? 2.1 : 1.1;
+        ctx.stroke(bp);
       }
       ctx.globalAlpha = 1;
 
