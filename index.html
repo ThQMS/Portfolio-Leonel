@@ -19,7 +19,7 @@
 <!-- skills-globe.css — styling for the 3D skill-icon nodes -->
 <link href="assets/css/skills-globe.css?v=4" rel="stylesheet"/>
 <!-- effects.css — ambient dev/architecture effects: matrix rain, compile bar, blueprint spine -->
-<link href="assets/css/effects.css?v=4" rel="stylesheet"/>
+<link href="assets/css/effects.css?v=7" rel="stylesheet"/>
 
 <!-- import map — resolves the "three" ES module + addons from a CDN for the skills globe -->
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
@@ -714,6 +714,7 @@
 <div class="flex items-center justify-center gap-2 mb-4"><i data-lucide="shield-check" class="w-5 h-5 text-orange-400"></i><span class="font-mono text-lg font-bold">Douglas Leonel <span class="text-muted-foreground">|</span> QA &amp; Software Tester</span></div>
 <p class="font-mono text-sm text-muted-foreground">Robot Framework, Selenium &amp; Playwright</p>
 <p class="font-mono text-xs text-muted-foreground mt-2">© 2026 Douglas Leonel. Todos os direitos reservados.</p>
+<p class="font-mono text-[11px] text-gray-600 mt-4 italic">「 A morte é como o vento — sempre ao meu lado. 」 <span class="text-orange-400/70 not-italic">— Yasuo</span></p>
 </footer>
 </div>
 </section>
@@ -733,9 +734,11 @@
 <!-- Lucide runtime (vendored locally) — renders every <i data-lucide> placeholder into an inline SVG; deferred so it never blocks first paint -->
 <script defer src="assets/js/lucide.min.js"></script>
 <!-- interactions.js — Lucide init, terminal typewriter, scroll reveals, nav buttons, contact form; deferred to run after lucide, in order -->
-<script defer src="assets/js/interactions.js?v=3"></script>
-<!-- effects.js — decorative ambient effects: matrix code rain, compile progress bar, blueprint spine -->
-<script defer src="assets/js/effects.js?v=4"></script>
+<script defer src="assets/js/interactions.js?v=4"></script>
+<!-- effects.js — ambient effects: Wind Wall (blocks threats), test-run progress bar, blueprint spine -->
+<script defer src="assets/js/effects.js?v=15"></script>
+<!-- yasuo.js — Yasuo flavour: leaf cursor trail, whirlwind entrance + "hasagi" easter egg -->
+<script defer src="assets/js/yasuo.js?v=9"></script>
 <!-- skills-globe.js — Three.js CSS3D sphere of Devicon skill icons (slow auto-rotate + drag); uses the import map above -->
 <script type="module" src="assets/js/skills-globe.js?v=5"></script>
 </body>

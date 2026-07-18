@@ -30,6 +30,30 @@
     var particles = [];
     var passes = [];
     var phase = 0;
+    // Dense field of air motes rising inside the wall (normalized coords, size-independent).
+    var wallParts = [];
+    for (var wp = 0; wp < 260; wp++) {
+      wallParts.push({
+        hn: Math.random(),                       // height 0 (base) .. 1 (top)
+        xf: Math.random(),                       // position across the wall
+        spd: 0.0025 + Math.random() * 0.006,     // rise speed
+        sz: 0.6 + Math.random() * 1.9,           // mote size
+        ph: Math.random() * Math.PI * 2,         // turbulence phase
+        tw: 0.6 + Math.random() * 1.8,           // turbulence width
+        core: Math.random() > 0.72,              // a few brighter motes
+      });
+    }
+    var flashes = [];        // brief bright ripples where a threat is blocked
+    var WALL_W = 78;
+    var LEAN = 0;            // 0 = upright wall; raise it to lean the wall across the screen
+    function wallTop() { return canvas.height * 0.04; }
+    function wallBot() { return canvas.height * 0.99; }
+    // Shield face: upright by default (LEAN 0), with a gentle bulge toward the incoming threats.
+    function wallFaceX(y) {
+      var top = wallTop(), bot = wallBot(), mid = (top + bot) / 2, half = (bot - top) / 2;
+      var n = Math.max(-1, Math.min(1, (y - mid) / half));
+      return wallX - n * half * LEAN + (1 - n * n) * 14;
+    }
 
     function resize() {
       canvas.width = window.innerWidth;
@@ -44,7 +68,7 @@
     function spawnThreat() {
       threats.push({
         x: canvas.width + 30,
-        y: 40 + Math.random() * (canvas.height - 80),
+        y: canvas.height * 0.08 + Math.random() * canvas.height * 0.86, // within the wall's vertical span
         speed: 1.3 + Math.random() * 2.4,
         text: THREATS[(Math.random() * THREATS.length) | 0],
       });
@@ -58,19 +82,92 @@
       if (Math.random() > 0.55) passes.push({ x: wallX - 10 - Math.random() * 40, y: y, life: 1 });
     }
 
+    // Yasuo's Wind Wall: a dense field of rising air particles — dense at the base, splaying and
+    // thinning toward the top, with a soft glowing seam on the face that destroys threats.
     function drawWall() {
-      phase += 0.04;
-      var band = 16;
-      for (var s = 0; s < 11; s++) {
-        var t = s / 10;
-        var off = Math.sin(phase + t * Math.PI * 2) * band;
+      phase += 0.035;
+      var top = wallTop(), bot = wallBot();
+
+      var Hh = bot - top;
+      // Soft body: densest at the base, dissolving toward the top — no hard rectangle edges.
+      var body = ctx.createLinearGradient(0, bot, 0, top);
+      body.addColorStop(0, "rgba(34,211,238,0.14)");
+      body.addColorStop(0.55, "rgba(34,211,238,0.07)");
+      body.addColorStop(1, "rgba(34,211,238,0)");
+      ctx.fillStyle = body;
+      ctx.beginPath();
+      for (var yy = bot; yy >= top; yy -= 6) {
+        var f = (bot - yy) / Hh;                                   // 0 base .. 1 top
+        var spread = 1 + f * 0.55;                                 // splays as it rises
+        ctx.lineTo(wallFaceX(yy) + Math.sin(yy * 0.02 + phase) * 4 * spread, yy);
+      }
+      for (var yb = top; yb <= bot; yb += 6) {
+        var f2 = (bot - yb) / Hh, spread2 = 1 + f2 * 0.55;
+        ctx.lineTo(wallFaceX(yb) - WALL_W * spread2 + Math.sin(yb * 0.02 + phase) * 4, yb);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Veils of moving air: overlapping translucent sheets that undulate, splay and dissolve as
+      // they rise. Filled shapes only — no lines, no dots — so it reads as volume of moving air.
+      for (var v = 0; v < 9; v++) {
+        var vSeed = v * 2.3;
+        var vTop = 0.58 + ((v * 29) % 38) / 100;                   // each veil ends at its own height
+        var vx = (v + 0.5) / 9;                                    // position across the wall
+        var vw = WALL_W * (0.18 + 0.12 * (v % 3));                 // veil thickness
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(34,211,238," + (0.05 + 0.10 * (1 - Math.abs(t - 0.5) * 2)).toFixed(3) + ")";
-        ctx.lineWidth = 1;
-        for (var y = 0; y <= canvas.height; y += 14) {
-          var x = wallX + off + Math.sin(y * 0.03 + phase + t * 3) * 6;
-          if (y === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        for (var st = 0; st <= 1.0001; st += 0.05) {               // up the leading side
+          var yS = bot - st * Hh * vTop, sp = 1 + st * 0.55;
+          var sway = Math.sin(yS * 0.022 - phase * 1.9 + vSeed) * (5 + st * 20)
+                   + Math.sin(yS * 0.05 - phase * 1.1 + vSeed * 1.7) * (2 + st * 7);
+          ctx.lineTo(wallFaceX(yS) - WALL_W * sp + vx * WALL_W * sp + sway + vw * (1 - st * 0.85), yS);
         }
+        for (var sd = 1; sd >= -0.0001; sd -= 0.05) {              // and back down the other side
+          var yD = bot - sd * Hh * vTop, sp2 = 1 + sd * 0.55;
+          var sway2 = Math.sin(yD * 0.022 - phase * 1.9 + vSeed) * (5 + sd * 20)
+                    + Math.sin(yD * 0.05 - phase * 1.1 + vSeed * 1.7) * (2 + sd * 7);
+          ctx.lineTo(wallFaceX(yD) - WALL_W * sp2 + vx * WALL_W * sp2 + sway2 - vw * (1 - sd * 0.85), yD);
+        }
+        ctx.closePath();
+        var aV = 0.13 + 0.07 * (0.5 + 0.5 * Math.sin(phase * 1.3 + vSeed));
+        var veil = ctx.createLinearGradient(0, bot, 0, bot - Hh * vTop);
+        veil.addColorStop(0, "rgba(207,250,254," + aV.toFixed(3) + ")");
+        veil.addColorStop(0.5, "rgba(165,243,252," + (aV * 0.6).toFixed(3) + ")");
+        veil.addColorStop(1, "rgba(165,243,252,0)");               // dissolves — no hard top edge
+        ctx.fillStyle = veil;
+        ctx.fill();
+      }
+
+      // The blocking face: a soft glowing seam, brightest at mid-height, fading at both ends.
+      ctx.save();
+      ctx.shadowColor = "rgba(34,211,238,0.85)";
+      ctx.shadowBlur = 16;
+      var faceGrad = ctx.createLinearGradient(0, top, 0, bot);
+      var fa = (0.34 + 0.10 * Math.sin(phase * 2)).toFixed(3);
+      faceGrad.addColorStop(0, "rgba(165,243,252,0)");
+      faceGrad.addColorStop(0.5, "rgba(207,250,254," + fa + ")");
+      faceGrad.addColorStop(1, "rgba(165,243,252,0.05)");
+      ctx.strokeStyle = faceGrad;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      for (var y2 = top; y2 <= bot; y2 += 6) {
+        var xe = wallFaceX(y2) + Math.sin(y2 * 0.03 + phase * 1.6) * 2;
+        if (y2 === top) ctx.moveTo(xe, y2); else ctx.lineTo(xe, y2);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // impact ripples where threats were blocked
+      for (var fi = flashes.length - 1; fi >= 0; fi--) {
+        var fl = flashes[fi];
+        fl.life -= 0.06;
+        if (fl.life <= 0) { flashes.splice(fi, 1); continue; }
+        var fxx = wallFaceX(fl.y), rad = 6 + (1 - fl.life) * 26;
+        ctx.strokeStyle = "rgba(207,250,254," + (fl.life * 0.8).toFixed(2) + ")";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(fxx, fl.y - rad);
+        ctx.lineTo(fxx, fl.y + rad);
         ctx.stroke();
       }
     }
@@ -92,7 +189,8 @@
       for (var i = threats.length - 1; i >= 0; i--) {
         var th = threats[i];
         th.x -= th.speed;
-        if (th.x <= wallX) { burst(wallX, th.y); threats.splice(i, 1); continue; }
+        var fxx = wallFaceX(th.y);
+        if (th.x <= fxx) { burst(fxx, th.y); flashes.push({ y: th.y, life: 1 }); threats.splice(i, 1); continue; } // pop on the shield face
         var near = Math.max(0, 1 - (th.x - wallX) / 120); // brighten as it nears the wall
         ctx.fillStyle = "rgba(239,68,68," + (0.35 + 0.5 * near).toFixed(2) + ")";
         ctx.fillText(th.text, th.x, th.y);
@@ -229,8 +327,8 @@
     var el = document.getElementById("boot");
     if (!el) return;
     el.addEventListener("click", function () { el.classList.add("boot-skip"); });
-    // Safety net: guarantee the overlay is gone even if the CSS animation never runs.
-    window.setTimeout(function () { el.classList.add("boot-skip"); }, 2600);
+    // Safety net: guarantee the overlay is gone even if the wind entrance never runs.
+    window.setTimeout(function () { el.classList.add("boot-skip"); }, 5200);
   }
 
   /* ---------------- 5. Count-up on stats (when they scroll into view) ---------------- */

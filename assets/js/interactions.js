@@ -407,6 +407,7 @@
     "Abrindo seu e-mail...": "Opening your email...", "Erro — tente de novo": "Error — try again",
     // footer
     "© 2026 Douglas Leonel. Todos os direitos reservados.": "© 2026 Douglas Leonel. All rights reserved.",
+    "「 A morte é como o vento — sempre ao meu lado. 」": "「 Death is like the wind — always by my side. 」",
   };
 
   var EN2PT = {};
