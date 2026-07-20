@@ -323,7 +323,7 @@
     "Início": "Home", "Sobre": "About", "Habilidades": "Skills", "Experiência": "Experience",
     "Projetos": "Projects", "Formação": "Education", "Contato": "Contact", "~/navegação": "~/navigation",
     // hero
-    "WIND_WALL :: ATIVA · BLUE TEAM ONLINE": "WIND_WALL :: ACTIVE · BLUE TEAM ONLINE",
+    "QUALITY_GATE :: ATIVO · BLUE TEAM ONLINE": "QUALITY_GATE :: ACTIVE · BLUE TEAM ONLINE",
     "Olá, eu sou": "Hi, I'm",
     "Da qualidade à defesa. Especializado em testes automatizados — Robot Framework, Selenium, Playwright e Cypress — garantindo que o bug nunca chegue ao usuário. Com formação em segurança defensiva.":
       "From quality to defense. Specialized in automated testing — Robot Framework, Selenium, Playwright and Cypress — making sure the bug never reaches the user. With a background in defensive security.",
@@ -398,7 +398,7 @@
     "Linguagens & Frameworks": "Languages & Frameworks",
     // contact
     "\"disponível\"": "\"available\"",
-    "// Wind Wall ativa — aguardando conexão...": "// Wind Wall active — awaiting connection...",
+    "// Quality gate ativo — aguardando conexão...": "// Quality gate active — awaiting connection...",
     "canal seguro": "secure channel", "para:": "to:", "resposta:": "reply:", "em até 24h": "within 24h",
     "Nome": "Name", "E-mail": "Email", "Assunto": "Subject", "Mensagem": "Message",
     "// Protegido por filtros de spam e limites de taxa": "// Protected by spam filters and rate limiting",
@@ -415,8 +415,8 @@
 
   var I18N_HTML = {
     mission: {
-      pt: 'Encontrar o defeito antes do usuário. Foco em <span class="text-white">testes automatizados</span>, <span class="text-white">APIs REST</span> e <span class="text-white">qualidade como defesa</span> — barrando o que é ruim como uma muralha de vento.',
-      en: 'Find the defect before the user does. Focused on <span class="text-white">automated testing</span>, <span class="text-white">REST APIs</span> and <span class="text-white">quality as defense</span> — blocking what is bad like a wall of wind.',
+      pt: 'Encontrar o defeito antes do usuário. Foco em <span class="text-white">testes automatizados</span>, <span class="text-white">APIs REST</span> e <span class="text-white">qualidade como defesa</span> — barrando o que é ruim antes que chegue ao usuário.',
+      en: 'Find the defect before the user does. Focused on <span class="text-white">automated testing</span>, <span class="text-white">REST APIs</span> and <span class="text-white">quality as defense</span> — blocking what is bad before it reaches the user.',
     },
   };
 

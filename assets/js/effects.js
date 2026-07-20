@@ -1,5 +1,6 @@
 /* effects.js — ambient dev/architecture effects, all decorative and self-contained:
- *   1. Wind Wall         — cyan wall of wind that destroys red threats drifting in (Yasuo / defense)
+ *   1. Quality gate      — red threats drift in and are destroyed at an invisible gate line.
+ *                          SHOW_WALL turns the old Yasuo wind wall back on at that same line.
  *   2. Compile bar       — top scroll-progress bar styled as a test-run meter
  *   3. Blueprint spine   — a left-gutter system trace that draws as you scroll (lg+)
  * Everything degrades gracefully and honours prefers-reduced-motion.
@@ -46,6 +47,9 @@
     var flashes = [];        // brief bright ripples where a threat is blocked
     var WALL_W = 78;
     var LEAN = 0;            // 0 = upright wall; raise it to lean the wall across the screen
+    // Cliente pediu para tirar a parede de vento, mantendo os erros sendo barrados. Os erros morrem
+    // na mesma linha de antes — ela apenas nao e mais desenhada. true = parede de volta.
+    var SHOW_WALL = false;
     function wallTop() { return canvas.height * 0.04; }
     function wallBot() { return canvas.height * 0.99; }
     // Shield face: upright by default (LEAN 0), with a gentle bulge toward the incoming threats.
@@ -157,7 +161,11 @@
       ctx.stroke();
       ctx.restore();
 
-      // impact ripples where threats were blocked
+    }
+
+    // Impact ripples where threats were blocked. Kept out of drawWall so the block still reads
+    // when the wall itself is not drawn — without it, threats would vanish with no feedback.
+    function drawFlashes() {
       for (var fi = flashes.length - 1; fi >= 0; fi--) {
         var fl = flashes[fi];
         fl.life -= 0.06;
@@ -182,7 +190,9 @@
 
       if (threats.length < 16 && Math.random() < 0.10) spawnThreat();
 
-      drawWall();
+      if (SHOW_WALL) drawWall();
+      else phase += 0.035; // drawWall normalmente avanca a fase; mantem o brilho dos estouros vivo
+      drawFlashes();
 
       ctx.font = "13px monospace";
       ctx.textBaseline = "middle";
